@@ -1,33 +1,27 @@
 package com.atqc;
 
+import com.atqc.models.UserModel;
 import io.qameta.allure.Description;
+import lombok.extern.log4j.Log4j;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
+@Log4j
 public class UserTest extends RestAPIBaseTest {
+
+    UserModel user = UserModel.create();
 
     @Test
     @Description("Create User with valid data")
-
     public void positivePostNewUser() {
 
         given()
-                .contentType("application/json")
-                .baseUri("https://petstore.swagger.io/v2")
+                .spec(REQUEST_SPEC)
                 .header("Access-Token", "dfhdh=validtoken=gfsdfdfh")
-                .body("{\n" +
-                        "  \"id\": 0,\n" +
-                        "  \"username\": \"Molly2\",\n" +
-                        "  \"firstName\": \"string\",\n" +
-                        "  \"lastName\": \"string\",\n" +
-                        "  \"email\": \"string\",\n" +
-                        "  \"password\": \"string\",\n" +
-                        "  \"phone\": \"string\",\n" +
-                        "  \"userStatus\": 0\n" +
-                        "}")
+                .body(user)
         .when()
                 .post("/user")
         .then()
@@ -42,11 +36,10 @@ public class UserTest extends RestAPIBaseTest {
     @Description("Get User by valid username")
     public void positiveGetUserByUsername() {
 
-        String userName = "Molly2";
+        String userName = "rosario.kub";
 
-        String lastName = given()
-                .contentType("application/json")
-                .baseUri("https://petstore.swagger.io/v2")
+        UserModel userModel = given()
+                .spec(REQUEST_SPEC)
                 .header("Access-Token", "dfhdh=validtoken=gfsdfdfh")
         .when()
                 .get("/user/{username}", userName)
@@ -54,9 +47,9 @@ public class UserTest extends RestAPIBaseTest {
                 .statusCode(200)
                 .body("username", equalTo(userName))
                 .body("firstName", is(not(emptyString())))
-                .extract().path("lastName");
+                .extract().as(UserModel.class);
 
-        System.out.println(lastName);
+        System.out.println(userModel.getLastName());
 
     }
 
@@ -64,8 +57,7 @@ public class UserTest extends RestAPIBaseTest {
     @Description("Get user by invalid username")
     public void negativeGetUserByInvalidUsername(String username, int code, String message) {
         given()
-                .contentType("application/json")
-                .baseUri("https://petstore.swagger.io/v2")
+                .spec(REQUEST_SPEC)
                 .header("Access-Token", "dfhdh=validtoken=gfsdfdfh")
         .when()
                 .get("/user/{username}", username)
@@ -87,5 +79,7 @@ public class UserTest extends RestAPIBaseTest {
 
         };
     }
+
+
 
 }
