@@ -1,73 +1,120 @@
 package com.atqc.models;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.github.javafaker.Faker;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import lombok.*;
 
-import static com.atqc.models.PetCategoryModel.*;
-import static com.atqc.models.PetTagModel.*;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PetModel {
 
     private int id;
-    @JsonProperty(value = "category")
-    private PetCategoryModel categoryObject;
+    private PetCategoryModel category;
     private String name;
-    private ArrayList<String> photoUrls;
-    private ArrayList < PetTagModel > tags = new ArrayList < PetTagModel > ();
-    private PetStatus status;
+    private List<String> photoUrls;
+    private List<PetTagModel> tags;
+    private String status;
 
 
     public enum PetStatus {
 
-        AVAILABLE("available"),
-        PENDING("pending"),
-        SOLD("sold");
+        AVAILABLE,
+        PENDING,
+        SOLD;
+    }
 
-        private final String value;
+    @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class PetTagModel {
 
-        PetStatus(String petStatus) {
-            this.value = petStatus;
+        private int id;
+        private String name;
+
+        public enum TagName {
+            SMALL(0),
+            MIDDLE(1),
+            BIG(2);
+
+            private final int value;
+
+            TagName(int tagName) {
+                this.value = tagName;
+            }
+
+            @JsonValue
+            public int getTagId() {
+                return value;
+            }
+
         }
-        @JsonValue
 
-        public String getPetStatus() {
-            return value;
+        public static PetTagModel selectTag(TagName tagName) {
+            return PetTagModel.builder()
+                    .id(tagName.getTagId())
+                    .name(tagName.toString().toLowerCase())
+                    .build();
         }
 
     }
 
-    public static PetModel createDog() {
+    @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class PetCategoryModel {
+
+        private int id;
+        private String name;
+
+        public enum CategoryName {
+            SMALL(0),
+            MIDDLE(1),
+            BIG(2);
+
+            private final int value;
+
+            CategoryName(int categoryName) {
+                this.value = categoryName;
+            }
+
+            @JsonValue
+            public int getCategoryId() {
+                return value;
+            }
+
+        }
+
+        public static PetCategoryModel selectCategory(CategoryName categoryName) {
+            return PetCategoryModel.builder()
+                    .id(categoryName.getCategoryId())
+                    .name(categoryName.toString().toLowerCase())
+                    .build();
+        }
+
+    }
+
+
+    public static PetModel random() {
         Faker faker = new Faker();
 
         return  PetModel.builder()
                 .id(Integer.parseInt(faker.number().digits(5)))
-                .categoryObject(selectDogs())
+                .category(PetCategoryModel.selectCategory(PetCategoryModel.CategoryName.BIG))
                 .name(faker.name().name())
-                .photoUrls(new ArrayList<String>(Collections.singleton("http://google.com")))
-                .tags(new ArrayList<PetTagModel>(Collections.singleton(selectBig())))
-                .status(PetStatus.AVAILABLE)
-                .build();
-    }
-
-    public static PetModel withoutRequired() {
-        Faker faker = new Faker();
-
-        return  PetModel.builder()
-                .id(Integer.parseInt(faker.number().digits(5)))
-                .categoryObject(selectBirds())
-                .photoUrls(new ArrayList<String>(Collections.singleton("http://google.com")))
-                .tags(new ArrayList<PetTagModel>(Collections.singleton(selectMiddle())))
-                .status(PetStatus.AVAILABLE)
+                .photoUrls(Collections.singletonList("http://google.com"))
+                .tags(Arrays.asList(PetTagModel.selectTag(PetTagModel.TagName.SMALL)))
+                .status(PetStatus.AVAILABLE.toString().toLowerCase())
                 .build();
     }
 
